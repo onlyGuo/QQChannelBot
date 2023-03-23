@@ -1,0 +1,12 @@
+# QQ频道机器人
+bot:
+  # 接口域名
+  api: https://sandbox.api.sgroup.qq.com
+  # BotAppID
+  id: ""
+  # 机器人令牌
+  token: ""
+
+logging:
+  pattern:
+    dateformat: yyyy-MM-DD HH:mm:ss
