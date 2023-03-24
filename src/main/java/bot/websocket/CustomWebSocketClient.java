@@ -1,9 +1,11 @@
 package bot.websocket;
 
+import bot.service.MessageService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
@@ -27,7 +29,14 @@ public class CustomWebSocketClient extends WebSocketClient {
     @Value("${bot.token}")
     String botToken;
 
+    @Resource
+    MessageService messageService;
+
     ObjectMapper mapper = new ObjectMapper();
+
+    String sessionId;
+
+    int s;
 
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
@@ -52,7 +61,14 @@ public class CustomWebSocketClient extends WebSocketClient {
             //事件类型
             String t = msg.get("t").asText();
             if ("MESSAGE_CREATE".equals(t)) {
-
+                String content = msg.get("d").get("content").asText();
+                switch (content) {
+                    case "服务器状态" -> messageService.systemInfo(msg);
+                    case "原神卡池" -> messageService.genshinPool(msg);
+                    default -> messageService.reply(msg);
+                }
+            } else if ("READY".equals(t)) {
+                sessionId = msg.get("d").get("session_id").asText();
             }
         }
     }
