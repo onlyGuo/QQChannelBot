@@ -33,18 +33,22 @@ public class TokenInterceptor implements ClientHttpRequestInterceptor {
     @Value("${bot.token}")
     String botToken;
 
+    @Value("${openai.key}")
+    String openaiKey;
+
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
         URI uri = request.getURI();
-        //接口host
-        String apiHost = URI.create(botApi).getHost();
-        //当前请求host
         String host = uri.getHost();
-        if (host.equals(apiHost)) {
-            //机器人Token
+        if ("sandbox.api.sgroup.qq.com".equals(host)) {
+            //QQ机器人
             String token = "Bot " + botId + "." + botToken;
             HttpHeaders headers = request.getHeaders();
             headers.add("Authorization", token);
+        } else if ("api.openai.com".equals(host)) {
+            //OpenAI
+            HttpHeaders headers = request.getHeaders();
+            headers.add("Authorization", "Bearer " + openaiKey);
         }
         return execution.execute(request, body);
     }

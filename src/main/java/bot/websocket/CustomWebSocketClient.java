@@ -36,7 +36,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     String sessionId;
 
-    int s;
+    int seq = 0;
 
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
@@ -49,23 +49,29 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @SneakyThrows
     @Override
-    public void onMessage(String s) {
-        log.info(s);
-        JsonNode msg = mapper.readTree(s);
+    public void onMessage(String message) {
+        log.info(message);
+        JsonNode msg = mapper.readTree(message);
         //opcode
         int op = msg.get("op").asInt();
         if (op == 10) {
             //鉴权连接
             identify();
+        } else if (op == 7) {
+            //重连
+            resume();
         } else if (op == 0) {
             //事件类型
             String t = msg.get("t").asText();
+            seq = msg.get("s").asInt();
             if ("MESSAGE_CREATE".equals(t)) {
                 String content = msg.get("d").get("content").asText();
-                switch (content) {
-                    case "服务器状态" -> messageService.systemInfo(msg);
-                    case "原神卡池" -> messageService.genshinPool(msg);
-                    default -> messageService.reply(msg);
+                if ("服务器状态".equals(content)) {
+                    messageService.systemInfo(msg);
+                } else if ("原神卡池".equals(content)) {
+                    messageService.genshinPool(msg);
+                } else {
+                    messageService.reply(msg);
                 }
             } else if ("READY".equals(t)) {
                 sessionId = msg.get("d").get("session_id").asText();
@@ -105,13 +111,30 @@ public class CustomWebSocketClient extends WebSocketClient {
     }
 
     /**
+     * 重连
+     */
+    public void resume() {
+        //机器人Token
+        String token = "Bot " + botId + "." + botToken;
+        //事件内容
+        ObjectNode d = mapper.createObjectNode()
+                .put("token", token)
+                .put("session_id", sessionId)
+                .put("seq", seq);
+        ObjectNode data = mapper.createObjectNode()
+                .put("op", 6)
+                .set("d", d);
+        send(data.toString());
+    }
+
+    /**
      * 发送心跳
      */
     @Scheduled(fixedRate = 30 * 1000)
     public void heart() {
         ObjectNode data = mapper.createObjectNode()
                 .put("op", 1)
-                .set("d", null);
+                .put("d", seq);
         send(data.toString());
     }
 }

@@ -7,6 +7,10 @@ bot:
   # 机器人令牌
   token: ""
 
+# OpenAI
+openai:
+  key: ""
+
 logging:
   pattern:
     dateformat: yyyy-MM-DD HH:mm:ss

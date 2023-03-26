@@ -23,6 +23,9 @@ public class MessageService {
     @Resource
     GenshinService genshinService;
 
+    @Resource
+    OpenAIService openAIService;
+
     private String send(String channelId, Map<String, Object> data) {
         String url = botApi + "/channels/" + channelId + "/messages";
         return restTemplate.postForObject(url, data, String.class);
@@ -32,12 +35,12 @@ public class MessageService {
         JsonNode pool = genshinService.pool();
         ArrayNode pools = pool.get("data").withArray("list");
         StringBuilder content = new StringBuilder();
-        pools.forEach(p -> {
-            content.append("\n------------------------------\n").append(p.get("title").asText()).append("\n")
+        for (JsonNode p : pools) {
+            content.append("\n\uD83D\uDCCC").append(p.get("title").asText()).append("\n")
                     .append(p.get("content_before_act").asText()).append("\n")
                     .append("开始时间：").append(p.get("start_time").asText()).append("\n")
                     .append("结束时间：").append(p.get("end_time").asText());
-        });
+        }
         String channelId = msg.get("d").get("channel_id").asText();
         String msgId = msg.get("d").get("id").asText();
         Map<String, Object> data = new HashMap<>();
@@ -62,8 +65,10 @@ public class MessageService {
     public void reply(JsonNode msg) {
         String channelId = msg.get("d").get("channel_id").asText();
         String msgId = msg.get("d").get("id").asText();
+        String content = msg.get("d").get("content").asText();
+        String gptContent = openAIService.chat(content);
         Map<String, Object> data = new HashMap<>();
-        data.put("image", "https://files.codelife.cc/wallpaper/wallspic/168917.jpg");
+        data.put("content", gptContent);
         data.put("msg_id", msgId);
         String response = send(channelId, data);
         System.out.println(response);
