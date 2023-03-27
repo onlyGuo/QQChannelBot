@@ -29,9 +29,6 @@ public class WebSocketService {
     public String gateway() {
         String url = botApi + "/gateway";
         JsonNode response = restTemplate.getForObject(url, JsonNode.class);
-        if (response == null) {
-            return "";
-        }
         return response.get("url").asText();
     }
 

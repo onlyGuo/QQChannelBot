@@ -4,7 +4,8 @@
 
 ## 一、开发文档
 1. [QQ机器人](https://bot.q.qq.com/wiki/)
-2. [Spring](https://spring.io/)
+2. [OpenAI](https://platform.openai.com/docs/api-reference)
+3. [Spring](https://spring.io/)
 
 ## 二、开发环境
 1. Java 17
