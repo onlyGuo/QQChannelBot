@@ -13,6 +13,9 @@ import java.net.URI;
 
 /**
  * HTTP请求拦截器
+ *
+ * @author 梁振辉
+ * @since 2023-03-28 00:12:02
  */
 @Component
 public class TokenInterceptor implements ClientHttpRequestInterceptor {
@@ -47,8 +50,9 @@ public class TokenInterceptor implements ClientHttpRequestInterceptor {
             headers.add("Authorization", token);
         } else if ("api.openai.com".equals(host)) {
             //OpenAI
+            String token = "Bearer " + openaiKey;
             HttpHeaders headers = request.getHeaders();
-            headers.add("Authorization", "Bearer " + openaiKey);
+            headers.add("Authorization", token);
         }
         return execution.execute(request, body);
     }

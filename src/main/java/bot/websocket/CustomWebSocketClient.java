@@ -3,7 +3,7 @@ package bot.websocket;
 import bot.constant.Command;
 import bot.constant.Intents;
 import bot.constant.Opcode;
-import bot.service.MessageService;
+import bot.service.WebSocketService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,9 +19,15 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.URI;
 
+/**
+ * WebSocket客户端
+ *
+ * @author 梁振辉
+ * @since 2023-03-28 00:12:02
+ */
 public class CustomWebSocketClient extends WebSocketClient {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(CustomWebSocketClient.class);
+    public static final Logger logger = LoggerFactory.getLogger(CustomWebSocketClient.class);
 
     /**
      * BotAppID
@@ -35,7 +41,7 @@ public class CustomWebSocketClient extends WebSocketClient {
     String botToken;
 
     @Resource
-    MessageService messageService;
+    WebSocketService webSocketService;
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -49,12 +55,12 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        LOGGER.info("open");
+        logger.info("open");
     }
 
     @Override
     public void onMessage(String message) {
-        LOGGER.info(message);
+        logger.info(message);
         JsonNode msg;
         try {
             msg = mapper.readTree(message);
@@ -69,9 +75,9 @@ public class CustomWebSocketClient extends WebSocketClient {
             if (Intents.MESSAGE_CREATE.equals(t)) {
                 String content = msg.get("d").get("content").asText();
                 switch (content) {
-                    case Command.SERVER_STATUS -> messageService.systemInfo(msg);
-                    case Command.GENSHIN_POOL -> messageService.genshinPool(msg);
-                    default -> messageService.reply(msg);
+                    case Command.SERVER_STATUS -> webSocketService.systemInfo(msg);
+                    case Command.GENSHIN_POOL -> webSocketService.genshinPool(msg);
+                    default -> webSocketService.reply(msg);
                 }
             } else if (Intents.READY.equals(t)) {
                 sessionId = msg.get("d").get("session_id").asText();
@@ -87,7 +93,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int i, String s, boolean b) {
-        LOGGER.info("close");
+        logger.info("close");
     }
 
     @Override

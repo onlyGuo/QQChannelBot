@@ -2,6 +2,9 @@ package bot.constant;
 
 /**
  * QQ机器人Opcode清单
+ *
+ * @author 梁振辉
+ * @since 2023-03-28 00:12:02
  */
 public class Opcode {
     /**

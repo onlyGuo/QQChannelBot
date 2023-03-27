@@ -10,6 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * OpenAI服务层
+ *
+ * @author 梁振辉
+ * @since 2023-03-28 00:12:02
+ */
 @Service
 public class OpenAIService {
 

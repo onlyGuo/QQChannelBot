@@ -1,3 +1,16 @@
+spring:
+  jackson:
+    # 下划线转驼峰
+    property-naming-strategy: SNAKE_CASE
+    deserialization:
+      # 忽略未知属性
+      fail-on-unknown-properties: false
+
+logging:
+  pattern:
+    # 日志时间格式
+    dateformat: yyyy-MM-DD HH:mm:ss
+
 # QQ频道机器人
 bot:
   # 接口域名
@@ -10,7 +23,3 @@ bot:
 # OpenAI
 openai:
   key: ""
-
-logging:
-  pattern:
-    dateformat: yyyy-MM-DD HH:mm:ss

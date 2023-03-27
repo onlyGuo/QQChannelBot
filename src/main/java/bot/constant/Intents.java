@@ -2,6 +2,9 @@ package bot.constant;
 
 /**
  * 事件订阅列表
+ *
+ * @author 梁振辉
+ * @since 2023-03-28 00:12:02
  */
 public class Intents {
     public static final String READY = "READY";

@@ -5,11 +5,11 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * 原神数据服务
+ * 原神数据服务层
+ *
+ * @author 梁振辉
+ * @since 2023-03-28 00:12:02
  */
 @Service
 public class GenshinService {
