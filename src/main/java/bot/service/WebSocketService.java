@@ -1,11 +1,12 @@
 package bot.service;
 
 import bot.entity.Message;
+import bot.util.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import oshi.SystemInfo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,46 +20,13 @@ import java.util.Map;
 @Service
 public class WebSocketService {
 
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketService.class);
+
     @Resource
     private QQChannelService qqChannelService;
 
     @Resource
-    private GenshinService genshinService;
-
-    @Resource
     private OpenAIService openAIService;
-
-
-    public void genshinPool(JsonNode msg) {
-        JsonNode pool = genshinService.pool();
-        ArrayNode pools = pool.get("data").withArray("list");
-        StringBuilder content = new StringBuilder();
-        for (JsonNode p : pools) {
-            content.append("\n\uD83D\uDCCC").append(p.get("title").asText()).append("\n")
-                    .append(p.get("content_before_act").asText()).append("\n")
-                    .append("开始时间：").append(p.get("start_time").asText()).append("\n")
-                    .append("结束时间：").append(p.get("end_time").asText());
-        }
-        String channelId = msg.get("d").get("channel_id").asText();
-        String msgId = msg.get("d").get("id").asText();
-        Map<String, Object> data = new HashMap<>();
-        data.put("content", content);
-        data.put("msg_id", msgId);
-        Message response = qqChannelService.send(channelId, data);
-        System.out.println(response);
-    }
-
-    public void systemInfo(JsonNode msg) {
-        SystemInfo systemInfo = new SystemInfo();
-        String channelId = msg.get("d").get("channel_id").asText();
-        String msgId = msg.get("d").get("id").asText();
-        Map<String, Object> data = new HashMap<>();
-        data.put("content", "\n" + systemInfo.getOperatingSystem().toString()
-                + "\n" + systemInfo.getHardware().getMemory());
-        data.put("msg_id", msgId);
-        Message response = qqChannelService.send(channelId, data);
-        System.out.println(response);
-    }
 
     public void reply(JsonNode msg) {
         String channelId = msg.get("d").get("channel_id").asText();
@@ -69,7 +37,7 @@ public class WebSocketService {
         data.put("content", gptContent);
         data.put("msg_id", msgId);
         Message response = qqChannelService.send(channelId, data);
-        System.out.println(response);
+        logger.info(JSONUtil.bean2json(response));
     }
 
 }
