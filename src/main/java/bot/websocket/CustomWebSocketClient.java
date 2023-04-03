@@ -1,6 +1,5 @@
 package bot.websocket;
 
-import bot.constant.Intents;
 import bot.constant.Opcode;
 import bot.entity.Payload;
 import bot.service.WebSocketService;
@@ -75,10 +74,10 @@ public class CustomWebSocketClient extends WebSocketClient {
         //消息推送
         String t = payload.getT();
         seq = payload.getS();
-        if (Intents.MESSAGE_CREATE.equals(t)) {
+        if ("MESSAGE_CREATE".equals(t)) {
             //发送消息事件
             webSocketService.reply(payload);
-        } else if (Intents.READY.equals(t)) {
+        } else if ("READY".equals(t)) {
             //连接就绪事件
             sessionId = payload.getD().get("session_id").asText();
         }
