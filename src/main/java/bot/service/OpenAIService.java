@@ -33,6 +33,10 @@ public class OpenAIService {
         data.put("model", "gpt-3.5-turbo");
         data.put("messages", messages);
         JsonNode response = restTemplate.postForObject(url, data, JsonNode.class);
-        return response.get("choices").get(0).get("message").get("content").asText();
+        if (response != null) {
+            return response.get("choices").get(0).get("message").get("content").asText();
+        } else {
+            return "OpenAI调用异常";
+        }
     }
 }

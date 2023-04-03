@@ -3,7 +3,6 @@ package bot.service;
 import bot.entity.Gateway;
 import bot.entity.Message;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,12 +17,6 @@ import java.util.Map;
 @Service
 public class QQChannelService {
 
-    /**
-     * 接口域名
-     */
-    @Value("${bot.api}")
-    private String botApi;
-
     @Resource
     private RestTemplate restTemplate;
 
@@ -33,7 +26,7 @@ public class QQChannelService {
      * @return 返回一个用于连接 websocket 的地址
      */
     public Gateway gateway() {
-        String url = botApi + "/gateway";
+        String url = "https://sandbox.api.sgroup.qq.com/gateway";
         return restTemplate.getForObject(url, Gateway.class);
     }
 
@@ -45,7 +38,8 @@ public class QQChannelService {
      * @return Message对象
      */
     public Message send(String channelId, Map<String, Object> data) {
-        String url = botApi + "/channels/" + channelId + "/messages";
+        String url = "https://sandbox.api.sgroup.qq.com/channels/" + channelId + "/messages";
         return restTemplate.postForObject(url, data, Message.class);
     }
+
 }
