@@ -30,14 +30,17 @@ public class RestTemplateConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
+        //HTTP请求拦截器
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         interceptors.add(tokenInterceptor);
-        restTemplate.setInterceptors(interceptors);
+        //报文信息转换器
         List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
         MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
         messageConverter.setObjectMapper(objectMapper);
         messageConverters.add(messageConverter);
+        //RestTemplate对象
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setInterceptors(interceptors);
         restTemplate.setMessageConverters(messageConverters);
         return restTemplate;
     }

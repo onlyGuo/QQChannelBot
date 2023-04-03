@@ -1,14 +1,10 @@
 package bot.websocket;
 
-import bot.constant.Command;
 import bot.constant.Intents;
 import bot.constant.Opcode;
+import bot.entity.Payload;
 import bot.service.WebSocketService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import bot.util.JSONUtil;
 import jakarta.annotation.Resource;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -18,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.URI;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * WebSocket客户端
@@ -30,20 +28,13 @@ public class CustomWebSocketClient extends WebSocketClient {
     public static final Logger logger = LoggerFactory.getLogger(CustomWebSocketClient.class);
 
     /**
-     * BotAppID
-     */
-    @Value("${bot.id}")
-    String botId;
-    /**
      * 机器人令牌
      */
-    @Value("${bot.token}")
-    String botToken;
+    @Value("Bot ${bot.id}.${bot.token}")
+    String token;
 
     @Resource
     WebSocketService webSocketService;
-
-    ObjectMapper mapper = new ObjectMapper();
 
     String sessionId;
 
@@ -61,33 +52,12 @@ public class CustomWebSocketClient extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         logger.info(message);
-        JsonNode msg;
-        try {
-            msg = mapper.readTree(message);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        int opcode = msg.get("op").asInt();
-        if (opcode == Opcode.DISPATCH) {
-            //事件类型
-            String t = msg.get("t").asText();
-            seq = msg.get("s").asInt();
-            if (Intents.MESSAGE_CREATE.equals(t)) {
-                String content = msg.get("d").get("content").asText();
-                switch (content) {
-                    case Command.SERVER_STATUS -> webSocketService.systemInfo(msg);
-                    case Command.GENSHIN_POOL -> webSocketService.genshinPool(msg);
-                    default -> webSocketService.reply(msg);
-                }
-            } else if (Intents.READY.equals(t)) {
-                sessionId = msg.get("d").get("session_id").asText();
-            }
-        } else if (opcode == Opcode.HELLO) {
-            //鉴权连接
-            identify();
-        } else if (opcode == Opcode.RECONNECT) {
-            //重连
-            resume();
+        Payload payload = JSONUtil.toObject(message, Payload.class);
+        int opcode = payload.getOp();
+        switch (opcode) {
+            case Opcode.DISPATCH -> dispatch(payload);
+            case Opcode.HELLO -> identify();
+            case Opcode.RECONNECT -> resume();
         }
     }
 
@@ -101,42 +71,47 @@ public class CustomWebSocketClient extends WebSocketClient {
         e.printStackTrace();
     }
 
+    public void dispatch(Payload payload) {
+        //消息推送
+        String t = payload.getT();
+        seq = payload.getS();
+        if (Intents.MESSAGE_CREATE.equals(t)) {
+            //发送消息事件
+            webSocketService.reply(payload);
+        } else if (Intents.READY.equals(t)) {
+            //连接就绪事件
+            sessionId = payload.getD().get("session_id").asText();
+        }
+    }
+
     /**
      * 鉴权连接
      */
     public void identify() {
-        //机器人Token
-        String token = "Bot " + botId + "." + botToken;
-        //水平分片
-        ArrayNode shard = mapper.createArrayNode()
-                .add(0)
-                .add(1);
-        //事件内容
-        ObjectNode d = mapper.createObjectNode()
-                .put("token", token)
-                .put("intents", Intents.GUILD_MESSAGES)
-                .set("shard", shard);
-        ObjectNode data = mapper.createObjectNode()
-                .put("op", Opcode.IDENTIFY)
-                .set("d", d);
-        send(data.toString());
+        Map<String, Object> data = new TreeMap<>() {{
+            put("op", Opcode.IDENTIFY);
+            put("d", new TreeMap<>() {{
+                put("token", token);
+                put("intents", 512);
+                put("shard", new int[]{0, 1});
+            }});
+        }};
+        send(JSONUtil.toJson(data));
     }
 
     /**
      * 重连
      */
     public void resume() {
-        //机器人Token
-        String token = "Bot " + botId + "." + botToken;
-        //事件内容
-        ObjectNode d = mapper.createObjectNode()
-                .put("token", token)
-                .put("session_id", sessionId)
-                .put("seq", seq);
-        ObjectNode data = mapper.createObjectNode()
-                .put("op", Opcode.RESUME)
-                .set("d", d);
-        send(data.toString());
+        Map<String, Object> data = new TreeMap<>() {{
+            put("op", Opcode.RESUME);
+            put("d", new TreeMap<>() {{
+                put("token", token);
+                put("session_id", sessionId);
+                put("seq", seq);
+            }});
+        }};
+        send(JSONUtil.toJson(data));
     }
 
     /**
@@ -144,9 +119,10 @@ public class CustomWebSocketClient extends WebSocketClient {
      */
     @Scheduled(fixedRate = 30 * 1000)
     public void heart() {
-        ObjectNode data = mapper.createObjectNode()
-                .put("op", Opcode.HEARTBEAT)
-                .put("d", seq);
-        send(data.toString());
+        Map<String, Object> data = new TreeMap<>() {{
+            put("op", Opcode.HEARTBEAT);
+            put("d", seq);
+        }};
+        send(JSONUtil.toJson(data));
     }
 }
