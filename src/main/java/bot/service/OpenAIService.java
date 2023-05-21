@@ -20,7 +20,7 @@ import java.util.Map;
 public class OpenAIService {
 
     @Resource
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     public String chat(String content) {
         String url = "https://api.openai.com/v1/chat/completions";

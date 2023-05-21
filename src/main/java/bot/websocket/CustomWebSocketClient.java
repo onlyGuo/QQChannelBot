@@ -24,7 +24,7 @@ import java.util.TreeMap;
  */
 public class CustomWebSocketClient extends WebSocketClient {
 
-    public static final Logger logger = LoggerFactory.getLogger(CustomWebSocketClient.class);
+    public static final Logger log = LoggerFactory.getLogger(CustomWebSocketClient.class);
 
     /**
      * 机器人令牌
@@ -45,12 +45,12 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        logger.info("open");
+        log.info("open");
     }
 
     @Override
     public void onMessage(String message) {
-        logger.info(message);
+        log.info(message);
         Payload payload = JSONUtil.toObject(message, Payload.class);
         int opcode = payload.getOp();
         switch (opcode) {
@@ -62,7 +62,7 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int i, String s, boolean b) {
-        logger.info("close");
+        log.info("close");
     }
 
     @Override

@@ -9,7 +9,7 @@ spring:
 logging:
   pattern:
     # 日志时间格式
-    dateformat: yyyy-MM-DD HH:mm:ss
+    dateformat: yyyy-MM-dd HH:mm:ss
 
 # QQ频道机器人
 bot:

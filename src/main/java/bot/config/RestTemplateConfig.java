@@ -34,14 +34,14 @@ public class RestTemplateConfig {
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         interceptors.add(tokenInterceptor);
         //报文信息转换器
-        List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
-        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
-        messageConverter.setObjectMapper(objectMapper);
-        messageConverters.add(messageConverter);
+//        List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
+//        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+//        messageConverter.setObjectMapper(objectMapper);
+//        messageConverters.add(messageConverter);
         //RestTemplate对象
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setInterceptors(interceptors);
-        restTemplate.setMessageConverters(messageConverters);
+        //restTemplate.setMessageConverters(messageConverters);
         return restTemplate;
     }
 }

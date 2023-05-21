@@ -28,11 +28,10 @@ public class TokenInterceptor implements ClientHttpRequestInterceptor {
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
         String host = request.getURI().getHost();
+        HttpHeaders headers = request.getHeaders();
         if ("sandbox.api.sgroup.qq.com".equals(host)) {
-            HttpHeaders headers = request.getHeaders();
             headers.add("Authorization", botToken);
         } else if ("api.openai.com".equals(host)) {
-            HttpHeaders headers = request.getHeaders();
             headers.add("Authorization", openaiKey);
         }
         return execution.execute(request, body);
