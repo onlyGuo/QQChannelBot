@@ -1,15 +1,7 @@
-spring:
-  jackson:
-    # 下划线转驼峰
-    property-naming-strategy: SNAKE_CASE
-    deserialization:
-      # 忽略未知属性
-      fail-on-unknown-properties: false
-
 logging:
   pattern:
     # 日志时间格式
-    dateformat: yyyy-MM-dd HH:mm:ss
+    dateformat: yyyy-MM-DD HH:mm:ss
 
 # QQ频道机器人
 bot:
@@ -17,7 +9,3 @@ bot:
   id: ""
   # 机器人令牌
   token: ""
-
-# OpenAI
-openai:
-  key: ""

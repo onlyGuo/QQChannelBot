@@ -3,24 +3,16 @@ package bot.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
+ * payload 指的是在 websocket 连接上传输的数据，网关的上下行消息采用的都是同一个结构
+ *
  * @author 梁振辉
- * @since 2023-04-03 20:06:54
+ * @since 2023-05-26 14:33:04
  */
 public class Payload {
-
-    private String id;
     private Integer op;
     private Integer s;
     private String t;
     private JsonNode d;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public Integer getOp() {
         return op;

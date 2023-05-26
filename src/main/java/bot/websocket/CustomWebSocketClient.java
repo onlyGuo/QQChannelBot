@@ -1,10 +1,8 @@
 package bot.websocket;
 
-import bot.constant.Opcode;
+import bot.entity.Opcode;
 import bot.entity.Payload;
-import bot.service.WebSocketService;
 import bot.util.JSONUtil;
-import jakarta.annotation.Resource;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -13,31 +11,30 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.TreeMap;
 
 /**
  * WebSocket客户端
  *
  * @author 梁振辉
- * @since 2023-03-28 00:12:02
+ * @since 2023-05-26 11:06:08
  */
 public class CustomWebSocketClient extends WebSocketClient {
 
-    public static final Logger log = LoggerFactory.getLogger(CustomWebSocketClient.class);
-
+    private final Logger log = LoggerFactory.getLogger(CustomWebSocketClient.class);
     /**
-     * 机器人令牌
+     * WebSocket会话ID
+     */
+    private String sessionId;
+    /**
+     * 事件序号
+     */
+    private Integer seq;
+    /**
+     * QQ机器人认证Token
      */
     @Value("Bot ${bot.id}.${bot.token}")
-    String token;
-
-    @Resource
-    WebSocketService webSocketService;
-
-    String sessionId;
-
-    int seq = 0;
+    private String botToken;
 
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
@@ -45,24 +42,36 @@ public class CustomWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        log.info("open");
+        log.info("open " + sessionId);
     }
 
     @Override
-    public void onMessage(String message) {
-        log.info(message);
-        Payload payload = JSONUtil.toObject(message, Payload.class);
-        int opcode = payload.getOp();
-        switch (opcode) {
-            case Opcode.DISPATCH -> dispatch(payload);
-            case Opcode.HELLO -> identify();
-            case Opcode.RECONNECT -> resume();
+    public void onMessage(String msg) {
+        log.info(msg);
+        Payload payload = JSONUtil.toBean(msg, Payload.class);
+        if (payload != null) {
+            switch (payload.getOp()) {
+                case Opcode.HELLO -> {
+                    if (sessionId == null) {
+                        identify();
+                    } else {
+                        resume();
+                    }
+                }
+                case Opcode.DISPATCH -> {
+                    seq = payload.getS();
+                    if (payload.getT().equals("READY")) {
+                        sessionId = payload.getD().get("session_id").asText();
+                    }
+                }
+            }
         }
     }
 
     @Override
-    public void onClose(int i, String s, boolean b) {
-        log.info("close");
+    public void onClose(int i, String msg, boolean b) {
+        log.warn("close");
+        new Thread(this::reconnect).start();
     }
 
     @Override
@@ -70,27 +79,14 @@ public class CustomWebSocketClient extends WebSocketClient {
         e.printStackTrace();
     }
 
-    public void dispatch(Payload payload) {
-        //消息推送
-        String t = payload.getT();
-        seq = payload.getS();
-        if ("MESSAGE_CREATE".equals(t)) {
-            //发送消息事件
-            webSocketService.reply(payload);
-        } else if ("READY".equals(t)) {
-            //连接就绪事件
-            sessionId = payload.getD().get("session_id").asText();
-        }
-    }
-
     /**
      * 鉴权连接
      */
-    public void identify() {
-        Map<String, Object> data = new TreeMap<>() {{
+    private void identify() {
+        TreeMap<String, Object> data = new TreeMap<>() {{
             put("op", Opcode.IDENTIFY);
             put("d", new TreeMap<>() {{
-                put("token", token);
+                put("token", botToken);
                 put("intents", 512);
                 put("shard", new int[]{0, 1});
             }});
@@ -99,13 +95,13 @@ public class CustomWebSocketClient extends WebSocketClient {
     }
 
     /**
-     * 重连
+     * 恢复连接
      */
-    public void resume() {
-        Map<String, Object> data = new TreeMap<>() {{
+    private void resume() {
+        TreeMap<String, Object> data = new TreeMap<>() {{
             put("op", Opcode.RESUME);
             put("d", new TreeMap<>() {{
-                put("token", token);
+                put("token", botToken);
                 put("session_id", sessionId);
                 put("seq", seq);
             }});
@@ -117,11 +113,13 @@ public class CustomWebSocketClient extends WebSocketClient {
      * 发送心跳
      */
     @Scheduled(fixedRate = 30 * 1000)
-    public void heart() {
-        Map<String, Object> data = new TreeMap<>() {{
-            put("op", Opcode.HEARTBEAT);
-            put("d", seq);
-        }};
-        send(JSONUtil.toJson(data));
+    private void heart() {
+        if (sessionId != null) {
+            TreeMap<String, Object> data = new TreeMap<>() {{
+                put("op", Opcode.HEARTBEAT);
+                put("s", seq);
+            }};
+            send(JSONUtil.toJson(data));
+        }
     }
 }

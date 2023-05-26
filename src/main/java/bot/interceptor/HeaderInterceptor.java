@@ -11,30 +11,24 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * HTTP请求拦截器
+ * HTTP Header拦截器
  *
  * @author 梁振辉
- * @since 2023-03-28 00:12:02
+ * @since 2023-05-26 11:19:18
  */
 @Component
-public class TokenInterceptor implements ClientHttpRequestInterceptor {
+public class HeaderInterceptor implements ClientHttpRequestInterceptor {
 
+    /**
+     * QQ机器人认证Token
+     */
     @Value("Bot ${bot.id}.${bot.token}")
-    String botToken;
-
-    @Value("Bearer ${openai.key}")
-    String openaiKey;
+    private String botToken;
 
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        String host = request.getURI().getHost();
         HttpHeaders headers = request.getHeaders();
-        if ("sandbox.api.sgroup.qq.com".equals(host)) {
-            headers.add("Authorization", botToken);
-        } else if ("api.openai.com".equals(host)) {
-            headers.add("Authorization", openaiKey);
-        }
+        headers.set("Authorization", botToken);
         return execution.execute(request, body);
     }
-
 }

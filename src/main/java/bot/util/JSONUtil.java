@@ -8,9 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * JSON工具类
  *
  * @author 梁振辉
- * @since 2023-04-03 19:50:18
+ * @since 2023-05-26 14:05:18
  */
 public class JSONUtil {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 对象转JSON字符串
@@ -19,38 +21,37 @@ public class JSONUtil {
      * @return JSON字符串
      */
     public static String toJson(Object obj) {
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.writeValueAsString(obj);
+            return objectMapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
-            return "{}";
-        }
-    }
-
-    public static <T> T toObject(String json, Class<T> type) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.readValue(json, type);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return (T) type;
+            return null;
         }
     }
 
     /**
-     * JSON字符串转JsonNode对象
+     * 字符串转JsonNode对象
      *
-     * @param json JSON字符串
+     * @param str JSON字符串
      * @return JsonNode对象
      */
-    public static JsonNode toNode(String json) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static JsonNode toNode(String str) {
         try {
-            return mapper.readTree(json);
+            return objectMapper.readTree(str);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
-            return mapper.createObjectNode();
+            return null;
         }
     }
+
+
+    public static <T> T toBean(String str, Class<T> type) {
+        try {
+            return objectMapper.readValue(str, type);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }

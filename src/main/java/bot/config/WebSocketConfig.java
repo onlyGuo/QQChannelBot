@@ -4,27 +4,24 @@ import bot.entity.Gateway;
 import bot.service.QQChannelService;
 import bot.websocket.CustomWebSocketClient;
 import jakarta.annotation.Resource;
-import org.java_websocket.client.WebSocketClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
 
 /**
- * WebSocket配置类
- *
  * @author 梁振辉
- * @since 2023-03-28 00:12:02
+ * @since 2023-05-26 11:11:22
  */
 @Configuration
 public class WebSocketConfig {
 
     @Resource
-    QQChannelService QQChannelService;
+    QQChannelService qqChannelService;
 
     @Bean
-    public WebSocketClient webSocketClient() {
-        Gateway gateway = QQChannelService.gateway();
+    CustomWebSocketClient customWebSocketClient() {
+        Gateway gateway = qqChannelService.gateway();
         URI uri = URI.create(gateway.getUrl());
         CustomWebSocketClient client = new CustomWebSocketClient(uri);
         client.connect();

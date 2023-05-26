@@ -1,15 +1,14 @@
 package bot.entity;
 
 /**
- * WebSocket接入地址
+ * WebSocket网关
  *
  * @author 梁振辉
- * @since 2023-03-28 00:12:02
+ * @since 2023-05-26 11:14:37
  */
 public class Gateway {
-
     /**
-     * 一个用于连接websocket的地址。
+     * WebSocket网关地址
      */
     private String url;
 
