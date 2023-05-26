@@ -1,6 +1,7 @@
 package bot.entity;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import cn.hutool.json.JSONObject;
+import lombok.Data;
 
 /**
  * payload 指的是在 websocket 连接上传输的数据，网关的上下行消息采用的都是同一个结构
@@ -8,41 +9,11 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @author 梁振辉
  * @since 2023-05-26 14:33:04
  */
+@Data
 public class Payload {
+    private String id;
     private Integer op;
     private Integer s;
     private String t;
-    private JsonNode d;
-
-    public Integer getOp() {
-        return op;
-    }
-
-    public void setOp(Integer op) {
-        this.op = op;
-    }
-
-    public Integer getS() {
-        return s;
-    }
-
-    public void setS(Integer s) {
-        this.s = s;
-    }
-
-    public String getT() {
-        return t;
-    }
-
-    public void setT(String t) {
-        this.t = t;
-    }
-
-    public JsonNode getD() {
-        return d;
-    }
-
-    public void setD(JsonNode d) {
-        this.d = d;
-    }
+    private JSONObject d;
 }

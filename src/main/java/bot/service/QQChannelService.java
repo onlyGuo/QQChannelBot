@@ -1,9 +1,15 @@
 package bot.service;
 
 import bot.entity.Gateway;
+import bot.entity.Message;
+import bot.entity.Payload;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.TreeMap;
 
 /**
  * QQ频道服务层
@@ -25,6 +31,22 @@ public class QQChannelService {
     public Gateway gateway() {
         String url = "https://sandbox.api.sgroup.qq.com/gateway";
         return restTemplate.getForObject(url, Gateway.class);
+    }
+
+    /**
+     * 用于向 channel_id 指定的子频道发送消息。
+     *
+     * @param payload WebSocket消息
+     * @return Message对象
+     */
+    public Message message(Payload payload) {
+        Message msg = JSONUtil.toBean(payload.getD(), Message.class);
+        String url = "https://sandbox.api.sgroup.qq.com/channels/" + msg.getChannel_id() + "/messages";
+        JSONObject data = JSONUtil.createObj()
+                .set("msg_id", msg.getId())
+                .set("content", msg.getContent());
+        return restTemplate.postForObject(url, data, Message.class);
+
     }
 
 }

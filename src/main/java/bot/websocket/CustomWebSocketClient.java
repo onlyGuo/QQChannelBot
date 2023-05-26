@@ -1,8 +1,12 @@
 package bot.websocket;
 
+import bot.entity.Message;
 import bot.entity.Opcode;
 import bot.entity.Payload;
-import bot.util.JSONUtil;
+import bot.service.QQChannelService;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import jakarta.annotation.Resource;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -35,6 +39,8 @@ public class CustomWebSocketClient extends WebSocketClient {
      */
     @Value("Bot ${bot.id}.${bot.token}")
     private String botToken;
+    @Resource
+    private QQChannelService qqChannelService;
 
     public CustomWebSocketClient(URI serverUri) {
         super(serverUri);
@@ -49,19 +55,21 @@ public class CustomWebSocketClient extends WebSocketClient {
     public void onMessage(String msg) {
         log.info(msg);
         Payload payload = JSONUtil.toBean(msg, Payload.class);
-        if (payload != null) {
-            switch (payload.getOp()) {
-                case Opcode.HELLO -> {
-                    if (sessionId == null) {
-                        identify();
-                    } else {
-                        resume();
-                    }
+        switch (payload.getOp()) {
+            case Opcode.HELLO -> {
+                if (sessionId == null) {
+                    identify();
+                } else {
+                    resume();
                 }
-                case Opcode.DISPATCH -> {
-                    seq = payload.getS();
-                    if (payload.getT().equals("READY")) {
-                        sessionId = payload.getD().get("session_id").asText();
+            }
+            case Opcode.DISPATCH -> {
+                seq = payload.getS();
+                switch (payload.getT()) {
+                    case "READY" -> sessionId = payload.getD().getStr("session_id");
+                    case "MESSAGE_CREATE" -> {
+                        Message message = qqChannelService.message(payload);
+                        log.info(JSONUtil.toJsonStr(message));
                     }
                 }
             }
@@ -83,30 +91,26 @@ public class CustomWebSocketClient extends WebSocketClient {
      * 鉴权连接
      */
     private void identify() {
-        TreeMap<String, Object> data = new TreeMap<>() {{
-            put("op", Opcode.IDENTIFY);
-            put("d", new TreeMap<>() {{
-                put("token", botToken);
-                put("intents", 512);
-                put("shard", new int[]{0, 1});
-            }});
-        }};
-        send(JSONUtil.toJson(data));
+        JSONObject data = JSONUtil.createObj()
+                .set("op", Opcode.IDENTIFY)
+                .set("d", JSONUtil.createObj()
+                        .set("token", botToken)
+                        .set("intents", 512)
+                        .set("shard", new int[]{0, 1}));
+        send(data.toString());
     }
 
     /**
      * 恢复连接
      */
     private void resume() {
-        TreeMap<String, Object> data = new TreeMap<>() {{
-            put("op", Opcode.RESUME);
-            put("d", new TreeMap<>() {{
-                put("token", botToken);
-                put("session_id", sessionId);
-                put("seq", seq);
-            }});
-        }};
-        send(JSONUtil.toJson(data));
+        JSONObject data = JSONUtil.createObj()
+                .set("op", Opcode.RESUME)
+                .set("d", JSONUtil.createObj()
+                        .set("token", botToken)
+                        .set("session_id", sessionId)
+                        .set("seq", seq));
+        send(data.toString());
     }
 
     /**
@@ -115,11 +119,14 @@ public class CustomWebSocketClient extends WebSocketClient {
     @Scheduled(fixedRate = 30 * 1000)
     private void heart() {
         if (sessionId != null) {
-            TreeMap<String, Object> data = new TreeMap<>() {{
-                put("op", Opcode.HEARTBEAT);
-                put("s", seq);
-            }};
-            send(JSONUtil.toJson(data));
+            JSONObject data = JSONUtil.createObj()
+                    .set("op", Opcode.HEARTBEAT)
+                    .set("s", seq);
+            send(data.toString());
         }
+    }
+
+    private void hello() {
+
     }
 }

@@ -1,8 +1,13 @@
+spring:
+  jackson:
+    deserialization:
+      # 忽略未知属性
+      fail-on-ignored-properties: false
+
 logging:
   pattern:
     # 日志时间格式
     dateformat: yyyy-MM-DD HH:mm:ss
-
 # QQ频道机器人
 bot:
   # BotAppID
