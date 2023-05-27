@@ -3,13 +3,11 @@ package bot.service;
 import bot.entity.Gateway;
 import bot.entity.Message;
 import bot.entity.Payload;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
+import bot.util.JSONUtil;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.TreeMap;
 
 /**
  * QQ频道服务层
@@ -40,11 +38,11 @@ public class QQChannelService {
      * @return Message对象
      */
     public Message message(Payload payload) {
-        Message msg = JSONUtil.toBean(payload.getD(), Message.class);
+        Message msg = JSONUtil.toBean(payload.getD().toString(), Message.class);
         String url = "https://sandbox.api.sgroup.qq.com/channels/" + msg.getChannel_id() + "/messages";
-        JSONObject data = JSONUtil.createObj()
-                .set("msg_id", msg.getId())
-                .set("content", msg.getContent());
+        ObjectNode data = JSONUtil.create()
+                .put("msg_id", msg.getId())
+                .put("content", msg.getContent());
         return restTemplate.postForObject(url, data, Message.class);
 
     }

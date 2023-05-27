@@ -1,4 +1,4 @@
-package bot.entity;
+package bot.constant;
 
 /**
  * opcode 列表
