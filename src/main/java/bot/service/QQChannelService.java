@@ -2,7 +2,6 @@ package bot.service;
 
 import bot.entity.Gateway;
 import bot.entity.Message;
-import bot.entity.Payload;
 import bot.util.JSONUtil;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.Resource;
@@ -34,15 +33,16 @@ public class QQChannelService {
     /**
      * 用于向 channel_id 指定的子频道发送消息。
      *
-     * @param payload WebSocket消息
+     * @param messageId 消息ID
+     * @param channelId 频道ID
+     * @param content   消息内容
      * @return Message对象
      */
-    public Message message(Payload payload) {
-        Message msg = JSONUtil.toBean(payload.getD().toString(), Message.class);
-        String url = "https://sandbox.api.sgroup.qq.com/channels/" + msg.getChannel_id() + "/messages";
+    public Message message(String messageId, String channelId, String content) {
+        String url = "https://sandbox.api.sgroup.qq.com/channels/" + channelId + "/messages";
         ObjectNode data = JSONUtil.create()
-                .put("msg_id", msg.getId())
-                .put("content", msg.getContent());
+                .put("msg_id", messageId)
+                .put("content", content);
         return restTemplate.postForObject(url, data, Message.class);
 
     }

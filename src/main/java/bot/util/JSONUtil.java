@@ -3,6 +3,7 @@ package bot.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -53,6 +54,18 @@ public class JSONUtil {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * JsonNode对象转POJO
+     *
+     * @param jsonNode JsonNode对象
+     * @param type     对象类型
+     * @param <T>      泛型
+     * @return 对象
+     */
+    public static <T> T toBean(JsonNode jsonNode, Class<T> type) {
+        return objectMapper.convertValue(jsonNode, type);
     }
 
     /**

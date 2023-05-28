@@ -24,11 +24,20 @@ public class HeaderInterceptor implements ClientHttpRequestInterceptor {
      */
     @Value("Bot ${bot.id}.${bot.token}")
     private String botToken;
+    @Value("Bearer ${openai.token}")
+    private String openAiToken;
 
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        String host = request.getURI().getHost();
         HttpHeaders headers = request.getHeaders();
-        headers.set("Authorization", botToken);
+        if (host.equals("sandbox.api.sgroup.qq.com")) {
+            //QQ频道接口
+            headers.set("Authorization", botToken);
+        } else if (host.equals("api.openai.com")) {
+            //OpenAI接口
+            headers.set("Authorization", openAiToken);
+        }
         return execution.execute(request, body);
     }
 }

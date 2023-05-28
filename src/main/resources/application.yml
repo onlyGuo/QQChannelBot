@@ -5,6 +5,6 @@ logging:
 # QQ频道机器人
 bot:
   # BotAppID
-  id: ""
+  id:
   # 机器人令牌
-  token: ""
+  token:

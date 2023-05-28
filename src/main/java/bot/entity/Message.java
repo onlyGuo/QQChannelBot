@@ -54,7 +54,7 @@ public class Message {
     /**
      * 消息创建者的member信息
      */
-    private List<Member> members;
+    private Member member;
     /**
      * Ark消息
      */
@@ -164,12 +164,12 @@ public class Message {
         this.mentions = mentions;
     }
 
-    public List<Member> getMembers() {
-        return members;
+    public Member getMember() {
+        return member;
     }
 
-    public void setMembers(List<Member> members) {
-        this.members = members;
+    public void setMember(Member member) {
+        this.member = member;
     }
 
     public MessageArk getArk() {
